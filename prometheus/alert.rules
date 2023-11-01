@@ -1,0 +1,26 @@
+groups: 
+- name: node-exporter.rules
+  rules:
+  - alert: NodeHasRebooted
+    expr: (node_time_seconds{instance="node-exporter:9100",job="node"} - node_boot_time_seconds{instance="node-exporter:9100",job="node"} < 600)
+    labels:
+      severity: critical
+    annotations:
+      summary: "Node {{ (or $labels.node $labels.instance) }} has rebooted {{ $value }} seconds ago."
+      description: "Node has rebooted"
+- name: blackbox.rules
+  rules:
+  - alert: HttpCode
+    expr: (probe_http_status_code{instance=~"https://apps.skillfactory.ru",job="blackbox"} != 200)
+    labels:
+      severity: critical
+    annotations:
+      summary: "Site {{ (or $labels.node $labels.instance) }} http code changed to {{ $value }}."
+      description: "Site http code changed"
+  - alert: SiteLatency
+    expr: (probe_duration_seconds{instance=~"https://apps.skillfactory.ru",job="blackbox"} > 5)
+    labels:
+      severity: Warning
+    annotations:
+      summary: "Site {{ (or $labels.node $labels.instance) }} latency is {{ $value }} seconds."
+      description: "Site latency if high"
